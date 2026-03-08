@@ -12,8 +12,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedState
 
 @Composable
@@ -21,10 +25,18 @@ fun AdaptiveUserFeedLayout(
     state: UserFeedState,
     onUserClick: (Long) -> Unit,
     onUserLongClick: (Long) -> Unit,
+    onDeselectUser: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val isWide = maxWidth >= 600.dp
+        val selectedUser = state.users.find { it.id == state.selectedUserId }
+        NavigationBackHandler(
+            state = rememberNavigationEventState(NavigationEventInfo.None),
+            isBackEnabled = selectedUser != null
+        ) {
+            onDeselectUser()
+        }
         if (isWide) {
             Row(modifier = Modifier.fillMaxSize()) {
                 UserList(
@@ -34,19 +46,25 @@ fun AdaptiveUserFeedLayout(
                     modifier = Modifier.weight(1f),
                 )
                 VerticalDivider(modifier = Modifier.fillMaxHeight())
-                val selectedUser = state.users.find { it.id == state.selectedUserId }
                 UserDetailPanel(
                     user = selectedUser,
                     modifier = Modifier.weight(1f),
                 )
             }
         } else {
-            UserList(
-                state = state,
-                onUserClick = onUserClick,
-                onUserLongClick = onUserLongClick,
-                modifier = Modifier.fillMaxSize(),
-            )
+            if (selectedUser != null) {
+                UserDetailPanel(
+                    user = selectedUser,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                UserList(
+                    state = state,
+                    onUserClick = onUserClick,
+                    onUserLongClick = onUserLongClick,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
     }
 }

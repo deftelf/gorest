@@ -67,6 +67,9 @@ fun UserFeedScreen(
             onUserLongClick = { userId ->
                 viewModel.processIntent(UserFeedIntent.RequestDelete(userId))
             },
+            onDeselectUser = {
+                viewModel.processIntent(UserFeedIntent.SelectUser(null))
+            },
             modifier = Modifier.padding(paddingValues),
         )
 
