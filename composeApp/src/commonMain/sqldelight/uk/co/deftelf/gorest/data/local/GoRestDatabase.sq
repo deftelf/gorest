@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS CachedUser (
+    id INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    gender TEXT NOT NULL,
+    status TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+selectAll:
+SELECT * FROM CachedUser ORDER BY id DESC;
+
+insertOrReplace:
+INSERT OR REPLACE INTO CachedUser VALUES (?, ?, ?, ?, ?, ?);
+
+deleteById:
+DELETE FROM CachedUser WHERE id = ?;
+
+deleteAll:
+DELETE FROM CachedUser;
