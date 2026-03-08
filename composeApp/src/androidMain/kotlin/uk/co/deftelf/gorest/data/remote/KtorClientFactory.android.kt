@@ -12,7 +12,7 @@ import kotlinx.serialization.json.Json
 actual class KtorClientFactory actual constructor() {
     actual fun create(): HttpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
-        install(Logging) { level = LogLevel.HEADERS }
+        install(Logging) { level = LogLevel.BODY }
         defaultRequest { url("https://gorest.co.in/public/v2/") }
     }
 }
