@@ -1,15 +1,36 @@
 package uk.co.deftelf.gorest
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import uk.co.deftelf.gorest.domain.usecase.CreateUserUseCase
-import uk.co.deftelf.gorest.presentation.adduser.AddUserIntent
-import uk.co.deftelf.gorest.presentation.adduser.AddUserViewModel
+import kotlinx.coroutines.test.setMain
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import uk.co.deftelf.gorest.domain.usecase.CreateUserUseCase
+import uk.co.deftelf.gorest.presentation.adduser.AddUserIntent
+import uk.co.deftelf.gorest.presentation.adduser.AddUserViewModel
 
 class AddUserViewModelTest {
+
+    private val scheduler = TestCoroutineScheduler()
+    private val dispatcher = StandardTestDispatcher(scheduler)
+
+    @BeforeTest
+    fun setUp() {
+        Dispatchers.setMain(dispatcher)
+    }
+
+    @AfterTest
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
 
     private fun createVm(): Pair<AddUserViewModel, FakeUserRepository> {
         val repo = FakeUserRepository()
@@ -18,14 +39,14 @@ class AddUserViewModelTest {
     }
 
     @Test
-    fun emptyNameShowsError() = runTest {
+    fun emptyNameShowsError() = runTest(scheduler) {
         val (vm, _) = createVm()
         vm.processIntent(AddUserIntent.UpdateName(""))
         assertNotNull(vm.state.value.nameError)
     }
 
     @Test
-    fun validNameClearsError() = runTest {
+    fun validNameClearsError() = runTest(scheduler) {
         val (vm, _) = createVm()
         vm.processIntent(AddUserIntent.UpdateName(""))
         vm.processIntent(AddUserIntent.UpdateName("John Doe"))
@@ -33,14 +54,14 @@ class AddUserViewModelTest {
     }
 
     @Test
-    fun invalidEmailShowsError() = runTest {
+    fun invalidEmailShowsError() = runTest(scheduler) {
         val (vm, _) = createVm()
         vm.processIntent(AddUserIntent.UpdateEmail("not-an-email"))
         assertNotNull(vm.state.value.emailError)
     }
 
     @Test
-    fun validEmailClearsError() = runTest {
+    fun validEmailClearsError() = runTest(scheduler) {
         val (vm, _) = createVm()
         vm.processIntent(AddUserIntent.UpdateEmail("not-an-email"))
         vm.processIntent(AddUserIntent.UpdateEmail("valid@example.com"))
@@ -48,7 +69,7 @@ class AddUserViewModelTest {
     }
 
     @Test
-    fun submitWithEmptyNameShowsError() = runTest {
+    fun submitWithEmptyNameShowsError() = runTest(scheduler) {
         val (vm, _) = createVm()
         vm.processIntent(AddUserIntent.UpdateEmail("valid@example.com"))
         vm.processIntent(AddUserIntent.Submit)
@@ -56,11 +77,12 @@ class AddUserViewModelTest {
     }
 
     @Test
-    fun validSubmitSetsSuccess() = runTest {
+    fun validSubmitSetsSuccess() = runTest(scheduler) {
         val (vm, _) = createVm()
         vm.processIntent(AddUserIntent.UpdateName("John Doe"))
         vm.processIntent(AddUserIntent.UpdateEmail("john@example.com"))
         vm.processIntent(AddUserIntent.Submit)
+        advanceUntilIdle()
         assertTrue(vm.state.value.isSuccess)
     }
 }
