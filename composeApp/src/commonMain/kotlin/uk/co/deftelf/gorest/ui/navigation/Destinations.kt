@@ -1,6 +1,12 @@
 package uk.co.deftelf.gorest.ui.navigation
 
-sealed interface Destination {
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed interface Destination : NavKey {
+    @Serializable
     data object Feed : Destination
+    @Serializable
     data object AddUser : Destination
 }
