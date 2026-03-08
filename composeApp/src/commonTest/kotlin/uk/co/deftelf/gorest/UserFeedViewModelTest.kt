@@ -5,6 +5,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -76,11 +77,11 @@ class UserFeedViewModelTest {
         advanceUntilIdle()
 
         vm.processIntent(UserFeedIntent.ConfirmDelete(2L))
-        advanceUntilIdle()
+        runCurrent()
         assertTrue(vm.state.value.users.none { it.id == 2L })
 
         vm.processIntent(UserFeedIntent.UndoDelete(2L))
-        advanceUntilIdle()
+        runCurrent()
         assertTrue(vm.state.value.users.any { it.id == 2L })
         assertEquals(3, vm.state.value.users.size)
     }
@@ -93,7 +94,7 @@ class UserFeedViewModelTest {
         advanceUntilIdle()
 
         vm.processIntent(UserFeedIntent.ConfirmDelete(1L))
-        advanceUntilIdle()
+        runCurrent()
         assertTrue(repo.deletedIds.isEmpty())
 
         advanceTimeBy(5_001)
