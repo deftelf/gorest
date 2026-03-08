@@ -12,4 +12,5 @@ data class AddUserState(
     val emailError: String? = null,
     val isSubmitting: Boolean = false,
     val isSuccess: Boolean = false,
+    val generalError: String? = null,
 )

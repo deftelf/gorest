@@ -158,7 +158,7 @@ class UserRepositoryDummyImpl() : UserRepository {
         status: String
     ): Result<User> {
         delay(1000)
-        return Result.failure(Exception("failed to creaete user"))
+        return Result.failure(Exception("failed to create user"))
     }
 
     override suspend fun deleteUser(id: Long): Result<Unit> {

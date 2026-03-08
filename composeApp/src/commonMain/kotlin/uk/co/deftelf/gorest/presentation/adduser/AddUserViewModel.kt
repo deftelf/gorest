@@ -61,8 +61,12 @@ class AddUserViewModel(
                     _effects.send(AddUserEffect.NavigateBack)
                 }
                 .onFailure { e ->
-                    _state.update { it.copy(isSubmitting = false, emailError = e.message) }
+                    _state.update { it.copy(isSubmitting = false, generalError = e.message) }
                 }
         }
+    }
+
+    fun clearGeneralError() {
+        _state.update { it.copy(generalError = null) }
     }
 }
