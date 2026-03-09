@@ -14,7 +14,7 @@ import uk.co.deftelf.gorest.ui.component.UserDetailPanel
 
 @Composable
 fun UserDetailScreen(
-    userId: Long,
+    userId: Long?,
     viewModel: UserFeedViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()

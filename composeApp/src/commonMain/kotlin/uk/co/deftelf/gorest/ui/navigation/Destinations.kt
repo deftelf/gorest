@@ -10,5 +10,5 @@ sealed interface Destination : NavKey {
     @Serializable
     data object AddUser : Destination
     @Serializable
-    data class UserDetail(val userId: Long) : Destination
+    data class UserDetail(val userId: Long?) : Destination
 }
