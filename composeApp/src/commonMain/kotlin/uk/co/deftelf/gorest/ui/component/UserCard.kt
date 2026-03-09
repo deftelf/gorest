@@ -18,6 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import gorest.composeapp.generated.resources.Res
+import gorest.composeapp.generated.resources.age_years
+import org.jetbrains.compose.resources.stringResource
 import uk.co.deftelf.gorest.domain.model.User
 import uk.co.deftelf.gorest.ui.util.ageInYears
 
@@ -64,7 +67,7 @@ fun UserCard(
             user.birthday?.let { birthday ->
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "${birthday.ageInYears()} yrs",
+                    text = stringResource(Res.string.age_years, birthday.ageInYears()),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 )

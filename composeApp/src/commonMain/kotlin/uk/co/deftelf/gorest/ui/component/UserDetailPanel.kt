@@ -14,9 +14,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import gorest.composeapp.generated.resources.Res
+import gorest.composeapp.generated.resources.birthday_label
+import gorest.composeapp.generated.resources.birthday_with_age
+import gorest.composeapp.generated.resources.gender_label
+import gorest.composeapp.generated.resources.id_label
+import gorest.composeapp.generated.resources.select_user_prompt
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.stringResource
 import uk.co.deftelf.gorest.domain.model.User
 import uk.co.deftelf.gorest.ui.util.ageInYears
 
@@ -40,7 +47,7 @@ fun UserDetailPanel(
     ) {
         if (user == null) {
             Text(
-                text = "Select a user to see details",
+                text = stringResource(Res.string.select_user_prompt),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
             )
@@ -58,16 +65,16 @@ fun UserDetailPanel(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                DetailRow("Gender", user.gender.name)
+                DetailRow(stringResource(Res.string.gender_label), user.gender.name)
                 user.birthday?.let { birthday ->
                     Spacer(modifier = Modifier.height(8.dp))
                     DetailRow(
-                        "Birthday",
-                        "${birthday.formattedDate()} · ${user.birthday.ageInYears()} years old"
+                        stringResource(Res.string.birthday_label),
+                        stringResource(Res.string.birthday_with_age, birthday.formattedDate(), birthday.ageInYears()),
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                DetailRow("ID", user.id.toString())
+                DetailRow(stringResource(Res.string.id_label), user.id.toString())
             }
         }
     }

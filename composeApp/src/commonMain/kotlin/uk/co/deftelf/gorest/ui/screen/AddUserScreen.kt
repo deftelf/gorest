@@ -36,11 +36,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import gorest.composeapp.generated.resources.Res
+import gorest.composeapp.generated.resources.add_user_title
+import gorest.composeapp.generated.resources.back
+import gorest.composeapp.generated.resources.birthday_label
+import gorest.composeapp.generated.resources.cancel
+import gorest.composeapp.generated.resources.email_label
+import gorest.composeapp.generated.resources.gender_label
+import gorest.composeapp.generated.resources.name_label
+import gorest.composeapp.generated.resources.ok
+import gorest.composeapp.generated.resources.select_date_description
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import uk.co.deftelf.gorest.domain.model.Gender
 import uk.co.deftelf.gorest.presentation.adduser.AddUserEffect
@@ -83,11 +94,11 @@ fun AddUserScreen(
                     datePickerState.selectedDateMillis?.toLocalDate()?.let { date ->
                         viewModel.processIntent(AddUserIntent.UpdateBirthday(date))
                     }
-                }) { Text("OK") }
+                }) { Text(stringResource(Res.string.ok)) }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.processIntent(AddUserIntent.HideDatePicker) }) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.cancel))
                 }
             },
         ) {
@@ -98,10 +109,10 @@ fun AddUserScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add User") },
+                title = { Text(stringResource(Res.string.add_user_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
             )
@@ -116,7 +127,7 @@ fun AddUserScreen(
             OutlinedTextField(
                 value = state.name,
                 onValueChange = { viewModel.processIntent(AddUserIntent.UpdateName(it)) },
-                label = { Text("Name") },
+                label = { Text(stringResource(Res.string.name_label)) },
                 isError = state.nameError != null,
                 supportingText = state.nameError?.let { { Text(it) } },
                 modifier = Modifier.fillMaxWidth(),
@@ -125,7 +136,7 @@ fun AddUserScreen(
             OutlinedTextField(
                 value = state.email,
                 onValueChange = { viewModel.processIntent(AddUserIntent.UpdateEmail(it)) },
-                label = { Text("Email") },
+                label = { Text(stringResource(Res.string.email_label)) },
                 isError = state.emailError != null,
                 supportingText = state.emailError?.let { { Text(it) } },
                 modifier = Modifier.fillMaxWidth(),
@@ -135,10 +146,10 @@ fun AddUserScreen(
                 OutlinedTextField(
                     value = state.birthday?.formatted() ?: "",
                     onValueChange = {},
-                    label = { Text("Birthday") },
+                    label = { Text(stringResource(Res.string.birthday_label)) },
                     readOnly = true,
                     trailingIcon = {
-                        Icon(Icons.Default.DateRange, contentDescription = "Select date")
+                        Icon(Icons.Default.DateRange, contentDescription = stringResource(Res.string.select_date_description))
                     },
                     isError = state.birthdayError != null,
                     supportingText = state.birthdayError?.let { { Text(it) } },
@@ -150,7 +161,7 @@ fun AddUserScreen(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Gender")
+            Text(stringResource(Res.string.gender_label))
             Row {
                 Gender.entries.forEach { gender ->
                     FilterChip(
@@ -170,7 +181,7 @@ fun AddUserScreen(
                 if (state.isSubmitting) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp))
                 } else {
-                    Text("Add User")
+                    Text(stringResource(Res.string.add_user_title))
                 }
             }
         }
@@ -179,10 +190,10 @@ fun AddUserScreen(
             val onDismiss = { viewModel.clearGeneralError() }
             AlertDialog(
                 onDismissRequest = onDismiss,
-                title = { Text("Add User") },
+                title = { Text(stringResource(Res.string.add_user_title)) },
                 text = { Text(state.generalError ?: "") },
                 confirmButton = {
-                    TextButton(onClick = onDismiss) { Text("OK") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(Res.string.ok)) }
                 },
             )
         }

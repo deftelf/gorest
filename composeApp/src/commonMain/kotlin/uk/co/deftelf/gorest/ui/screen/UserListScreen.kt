@@ -20,8 +20,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigationevent.compose.NavigationBackHandler
+import gorest.composeapp.generated.resources.Res
+import gorest.composeapp.generated.resources.add_user_fab_description
+import gorest.composeapp.generated.resources.no_internet_connection
+import gorest.composeapp.generated.resources.this_user
+import gorest.composeapp.generated.resources.undo
+import gorest.composeapp.generated.resources.user_deleted
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import uk.co.deftelf.gorest.data.connectivity.NetworkMonitor
@@ -52,7 +60,7 @@ fun UserListScreen(
             } else {
                 launch {
                     snackbarHostState.showSnackbar(
-                        message = "No internet connection",
+                        message = getString(Res.string.no_internet_connection),
                         duration = SnackbarDuration.Indefinite,
                     )
                 }
@@ -65,8 +73,8 @@ fun UserListScreen(
             when (effect) {
                 is UserFeedEffect.ShowUndoSnackbar -> {
                     val result = snackbarHostState.showSnackbar(
-                        message = "${effect.userName} deleted",
-                        actionLabel = "Undo",
+                        message = getString(Res.string.user_deleted, effect.userName),
+                        actionLabel = getString(Res.string.undo),
                         duration = SnackbarDuration.Long,
                     )
                     if (result == SnackbarResult.ActionPerformed) {
@@ -84,7 +92,7 @@ fun UserListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(onClick = onNavigateToAdd) {
-                Icon(Icons.Default.Add, contentDescription = "Add user")
+                Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.add_user_fab_description))
             }
         },
     ) { paddingValues ->
@@ -120,7 +128,7 @@ fun UserListScreen(
             val user = state.users.find { it.id == userId }
             DeleteConfirmDialog(
                 userId = userId,
-                userName = user?.name ?: "this user",
+                userName = user?.name ?: stringResource(Res.string.this_user),
                 onConfirm = { viewModel.processIntent(UserFeedIntent.ConfirmDelete(userId)) },
                 onDismiss = { viewModel.processIntent(UserFeedIntent.DismissError) },
             )
