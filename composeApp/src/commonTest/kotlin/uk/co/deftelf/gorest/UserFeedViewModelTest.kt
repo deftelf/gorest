@@ -1,6 +1,7 @@
 package uk.co.deftelf.gorest
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.advanceTimeBy
@@ -14,12 +15,14 @@ import uk.co.deftelf.gorest.domain.model.Gender
 import uk.co.deftelf.gorest.domain.model.User
 import uk.co.deftelf.gorest.domain.usecase.DeleteUserUseCase
 import uk.co.deftelf.gorest.domain.usecase.GetUsersUseCase
+import uk.co.deftelf.gorest.presentation.userfeed.UserFeedEffect
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedIntent
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedViewModel
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class UserFeedViewModelTest {
@@ -106,5 +109,70 @@ class UserFeedViewModelTest {
         val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
         advanceUntilIdle()
         assertTrue(vm.state.value.error != null)
+    }
+
+    @Test
+    fun requestDeleteSetsPendingDeleteId() = runTest(scheduler) {
+        val repo = FakeUserRepository()
+        repo.setUsers(listOf(createUser(1), createUser(2)))
+        val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
+        advanceUntilIdle()
+
+        vm.processIntent(UserFeedIntent.RequestDelete(2L))
+        runCurrent()
+
+        assertEquals(2L, vm.state.value.pendingDeleteId)
+    }
+
+    @Test
+    fun dismissErrorClearsPendingDeleteId() = runTest(scheduler) {
+        val repo = FakeUserRepository()
+        repo.setUsers(listOf(createUser(1), createUser(2)))
+        val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
+        advanceUntilIdle()
+
+        vm.processIntent(UserFeedIntent.RequestDelete(2L))
+        runCurrent()
+        vm.processIntent(UserFeedIntent.DismissError)
+        runCurrent()
+
+        assertNull(vm.state.value.pendingDeleteId)
+    }
+
+    @Test
+    fun deleteFailureRestoresUserAndShowsEffect() = runTest(scheduler) {
+        val repo = FakeUserRepository().apply { shouldFailDelete = true }
+        repo.setUsers(listOf(createUser(1), createUser(2)))
+        val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
+        advanceUntilIdle()
+
+        val effects = mutableListOf<UserFeedEffect>()
+        val job = launch { vm.effects.collect { effects.add(it) } }
+
+        vm.processIntent(UserFeedIntent.ConfirmDelete(1L))
+        advanceTimeBy(5_001)
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.users.any { it.id == 1L })
+        assertTrue(effects.any { it is UserFeedEffect.ShowError })
+        job.cancel()
+    }
+
+    @Test
+    fun undoPreventsFinalDeletion() = runTest(scheduler) {
+        val repo = FakeUserRepository()
+        repo.setUsers(listOf(createUser(1), createUser(2)))
+        val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
+        advanceUntilIdle()
+
+        vm.processIntent(UserFeedIntent.ConfirmDelete(1L))
+        runCurrent()
+        vm.processIntent(UserFeedIntent.UndoDelete(1L))
+        runCurrent()
+
+        advanceTimeBy(5_001)
+        advanceUntilIdle()
+
+        assertTrue(repo.deletedIds.isEmpty())
     }
 }

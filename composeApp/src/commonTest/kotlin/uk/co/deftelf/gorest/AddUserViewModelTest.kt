@@ -3,6 +3,7 @@ package uk.co.deftelf.gorest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -15,6 +16,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import uk.co.deftelf.gorest.domain.usecase.CreateUserUseCase
+import uk.co.deftelf.gorest.presentation.adduser.AddUserEffect
 import uk.co.deftelf.gorest.presentation.adduser.AddUserIntent
 import uk.co.deftelf.gorest.presentation.adduser.AddUserViewModel
 
@@ -86,5 +88,49 @@ class AddUserViewModelTest {
         vm.processIntent(AddUserIntent.Submit)
         advanceUntilIdle()
         assertTrue(vm.state.value.isSuccess)
+    }
+
+    @Test
+    fun submitWithoutBirthdayShowsBirthdayError() = runTest(scheduler) {
+        val (vm, _) = createVm()
+        vm.processIntent(AddUserIntent.UpdateName("John Doe"))
+        vm.processIntent(AddUserIntent.UpdateEmail("john@example.com"))
+        vm.processIntent(AddUserIntent.Submit)
+        assertNotNull(vm.state.value.birthdayError)
+    }
+
+    @Test
+    fun submitWithRepositoryFailureShowsGeneralError() = runTest(scheduler) {
+        val repo = FakeUserRepository().apply { shouldFailCreate = true }
+        val vm = AddUserViewModel(CreateUserUseCase(repo))
+        vm.processIntent(AddUserIntent.UpdateName("John Doe"))
+        vm.processIntent(AddUserIntent.UpdateEmail("john@example.com"))
+        vm.processIntent(AddUserIntent.UpdateBirthday(LocalDate(1990, 1, 1)))
+        vm.processIntent(AddUserIntent.Submit)
+        advanceUntilIdle()
+        assertNotNull(vm.state.value.generalError)
+    }
+
+    @Test
+    fun showDatePickerUpdatesState() = runTest(scheduler) {
+        val (vm, _) = createVm()
+        vm.processIntent(AddUserIntent.ShowDatePicker)
+        assertTrue(vm.state.value.showDatePicker)
+        vm.processIntent(AddUserIntent.HideDatePicker)
+        assertTrue(!vm.state.value.showDatePicker)
+    }
+
+    @Test
+    fun validSubmitSendsNavigateBackEffect() = runTest(scheduler) {
+        val (vm, _) = createVm()
+        val effects = mutableListOf<AddUserEffect>()
+        val job = launch { vm.effects.collect { effects.add(it) } }
+        vm.processIntent(AddUserIntent.UpdateName("John Doe"))
+        vm.processIntent(AddUserIntent.UpdateEmail("john@example.com"))
+        vm.processIntent(AddUserIntent.UpdateBirthday(LocalDate(1990, 1, 1)))
+        vm.processIntent(AddUserIntent.Submit)
+        advanceUntilIdle()
+        assertTrue(effects.any { it is AddUserEffect.NavigateBack })
+        job.cancel()
     }
 }
