@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+    <string name="delete">Delete</string>
+    <string name="gender_label">Gender</string>
+    <string name="birthday_label">Birthday</string>
+    <string name="id_label">ID</string>
+
+    <!-- Add User -->
+    <string name="add_user_title">Add User</string>
+    <string name="name_label">Name</string>
+    <string name="email_label">Email</string>
+    <string name="select_date_description">Select date</string>
+
+    <!-- User List -->
+    <string name="add_user_fab_description">Add user</string>
+    <string name="no_internet_connection">No internet connection</string>
+    <string name="user_deleted">%s deleted</string>
+    <string name="undo">Undo</string>
+    <string name="this_user">this user</string>
+
+    <!-- Delete Dialog -->
+    <string name="delete_user_title">Delete User</string>
+    <string name="delete_confirm_message">Delete \"%s\"? This action can be undone within 5 seconds.</string>
+
+    <!-- User Detail -->
+    <string name="select_user_prompt">Select a user to see details</string>
+    <string name="birthday_with_age">%1$s · %2$s years old</string>
+
+    <!-- User Card -->
+    <string name="age_years">%1$s yrs</string>
+</resources>

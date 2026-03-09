@@ -62,6 +62,7 @@ koin-android                     = { module = "io.insert-koin:koin-android",    
 koin-test                        = { module = "io.insert-koin:koin-test",                     version.ref = "koin" }
 kotlinx-serialization-json       = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-datetime                 = { module = "org.jetbrains.kotlinx:kotlinx-datetime",       version.ref = "kotlinx-datetime" }
+kotlinx-coroutines-core          = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test          = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 slf4j                            = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 

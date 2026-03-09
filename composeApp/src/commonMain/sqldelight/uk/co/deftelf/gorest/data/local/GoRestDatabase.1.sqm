@@ -1,1 +1,0 @@
-ALTER TABLE CachedUser ADD COLUMN birth_date TEXT NOT NULL DEFAULT '';
