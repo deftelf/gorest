@@ -20,7 +20,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigationevent.compose.NavigationBackHandler
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import uk.co.deftelf.gorest.data.connectivity.NetworkMonitor
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedEffect
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedIntent
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedViewModel
@@ -34,9 +38,27 @@ fun UserListScreen(
     onNavigateToAdd: () -> Unit,
     onNavigateToDetail: (Long) -> Unit,
     viewModel: UserFeedViewModel = koinViewModel(),
+    networkMonitor: NetworkMonitor = koinInject(),
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(networkMonitor.isConnected) {
+        var noNetworkJob: Job? = null
+        networkMonitor.isConnected.collect { connected ->
+            noNetworkJob?.cancel()
+            noNetworkJob = if (connected) {
+                null
+            } else {
+                launch {
+                    snackbarHostState.showSnackbar(
+                        message = "No internet connection",
+                        duration = SnackbarDuration.Indefinite,
+                    )
+                }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
