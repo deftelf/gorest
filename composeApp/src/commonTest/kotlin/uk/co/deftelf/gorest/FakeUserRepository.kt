@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.time.Instant
+import kotlinx.datetime.LocalDate
 import uk.co.deftelf.gorest.domain.model.Gender
 import uk.co.deftelf.gorest.domain.model.User
 import uk.co.deftelf.gorest.domain.repository.UserRepository
@@ -32,6 +33,7 @@ class FakeUserRepository : UserRepository {
         name: String,
         email: String,
         gender: String,
+        birthday: LocalDate,
     ): Result<User> {
         if (shouldFailCreate) return Result.failure(Exception("Create failed"))
         val user = User(

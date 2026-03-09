@@ -14,7 +14,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlin.time.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import uk.co.deftelf.gorest.domain.model.User
+import uk.co.deftelf.gorest.ui.util.ageInYears
+
+private fun Instant.formattedDate(): String {
+    val date = toLocalDateTime(TimeZone.currentSystemDefault()).date
+    val month = date.month.name.lowercase().replaceFirstChar { it.uppercase() }
+    return "${date.dayOfMonth} $month ${date.year}"
+}
 
 @Composable
 fun UserDetailPanel(
@@ -49,6 +59,13 @@ fun UserDetailPanel(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 DetailRow("Gender", user.gender.name)
+                user.birthday?.let { birthday ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DetailRow(
+                        "Birthday",
+                        "${birthday.formattedDate()} · ${user.birthday.ageInYears()} years old"
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 DetailRow("ID", user.id.toString())
             }

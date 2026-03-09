@@ -7,6 +7,10 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import uk.co.deftelf.gorest.data.local.GoRestDatabase
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import uk.co.deftelf.gorest.data.mapper.UserMapper
 import uk.co.deftelf.gorest.data.mapper.UserMapper.parseBirthDate
 import uk.co.deftelf.gorest.data.mapper.UserMapper.toDomain
 import uk.co.deftelf.gorest.data.remote.DummyJsonApiService
@@ -46,11 +50,14 @@ class UserRepositoryImpl(
         name: String,
         email: String,
         gender: String,
+        birthday: LocalDate,
     ): Result<User> = runCatching {
         val parts = name.trim().split(" ", limit = 2)
         val firstName = parts[0]
         val lastName = parts.getOrElse(1) { "" }
-        val created = api.createUser(firstName, lastName, email, gender)
+        val encodedBirthday = UserMapper.encodeBirthDate(birthday)
+        val created = api.createUser(firstName, lastName, email, gender, encodedBirthday)
+        val createdBirthday = parseBirthDate(created.birthDate)
         db.goRestDatabaseQueries.insertOrReplace(
             id = created.id,
             name = "${created.firstName} ${created.lastName}".trim(),
@@ -58,7 +65,7 @@ class UserRepositoryImpl(
             gender = created.gender,
             status = "",
             created_at = "",
-            birth_date = "",
+            birth_date = createdBirthday.toString(),
         )
         created.toDomain()
     }

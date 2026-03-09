@@ -17,10 +17,10 @@ class DummyJsonApiService(private val client: HttpClient) {
     suspend fun fetchUsers(): List<UserDto> =
         client.get("users").body<UsersResponse>().users
 
-    suspend fun createUser(firstName: String, lastName: String, email: String, gender: String): UserDto =
+    suspend fun createUser(firstName: String, lastName: String, email: String, gender: String, birthday: String): UserDto =
         client.post("users/add") {
             contentType(ContentType.Application.Json)
-            setBody(CreateUserDto(firstName, lastName, email, gender))
+            setBody(CreateUserDto(firstName, lastName, email, gender, birthday))
         }.body()
 
     suspend fun deleteUser(id: Long) {

@@ -35,6 +35,15 @@ class AddUserViewModel(
             is AddUserIntent.UpdateGender -> {
                 _state.update { it.copy(gender = intent.gender) }
             }
+            is AddUserIntent.UpdateBirthday -> {
+                _state.update { it.copy(birthday = intent.date, birthdayError = null, showDatePicker = false) }
+            }
+            is AddUserIntent.ShowDatePicker -> {
+                _state.update { it.copy(showDatePicker = true) }
+            }
+            is AddUserIntent.HideDatePicker -> {
+                _state.update { it.copy(showDatePicker = false) }
+            }
             is AddUserIntent.Submit -> submit()
         }
     }
@@ -44,13 +53,14 @@ class AddUserViewModel(
         val nameError = if (current.name.isBlank()) "Name cannot be empty" else null
         val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
         val emailError = if (!emailRegex.matches(current.email)) "Invalid email address" else null
-        if (nameError != null || emailError != null) {
-            _state.update { it.copy(nameError = nameError, emailError = emailError) }
+        val birthdayError = if (current.birthday == null) "Birthday is required" else null
+        if (nameError != null || emailError != null || birthdayError != null) {
+            _state.update { it.copy(nameError = nameError, emailError = emailError, birthdayError = birthdayError) }
             return
         }
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true) }
-            createUserUseCase(current.name, current.email, current.gender.name)
+            createUserUseCase(current.name, current.email, current.gender.name, current.birthday!!)
                 .onSuccess {
                     _state.update { it.copy(isSubmitting = false, isSuccess = true) }
                     _effects.send(AddUserEffect.NavigateBack)

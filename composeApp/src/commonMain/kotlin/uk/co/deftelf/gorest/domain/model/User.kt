@@ -7,7 +7,7 @@ data class User(
     val name: String,
     val email: String,
     val gender: Gender,
-    val birthday: Instant,
+    val birthday: Instant?,
 )
 
 enum class Gender { male, female }

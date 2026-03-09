@@ -18,22 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlin.time.Clock
-import kotlin.time.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import uk.co.deftelf.gorest.domain.model.User
-
-private fun Instant.ageInYears(): Int {
-    // Bit of ambiguity on actually what timezone the birthday is but we'll assume local
-    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-    val birth = toLocalDateTime(TimeZone.currentSystemDefault())
-    var age = today.year - birth.year
-    if (today.month < birth.month ||
-        (today.month == birth.month && today.day < birth.day)
-    ) age--
-    return age
-}
+import uk.co.deftelf.gorest.ui.util.ageInYears
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -75,12 +61,14 @@ fun UserCard(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "${user.birthday.ageInYears()} yrs",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            )
+            user.birthday?.let { birthday ->
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "${birthday.ageInYears()} yrs",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                )
+            }
         }
     }
 }

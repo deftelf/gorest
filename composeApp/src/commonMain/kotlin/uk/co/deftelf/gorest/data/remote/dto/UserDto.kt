@@ -24,4 +24,5 @@ data class CreateUserDto(
     @SerialName("lastName") val lastName: String,
     val email: String,
     val gender: String,
+    @SerialName("birthDate") val birthDate: String,
 )
