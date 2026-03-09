@@ -7,6 +7,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.LocalDate
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -81,6 +82,7 @@ class AddUserViewModelTest {
         val (vm, _) = createVm()
         vm.processIntent(AddUserIntent.UpdateName("John Doe"))
         vm.processIntent(AddUserIntent.UpdateEmail("john@example.com"))
+        vm.processIntent(AddUserIntent.UpdateBirthday(LocalDate(1990, 1, 1)))
         vm.processIntent(AddUserIntent.Submit)
         advanceUntilIdle()
         assertTrue(vm.state.value.isSuccess)

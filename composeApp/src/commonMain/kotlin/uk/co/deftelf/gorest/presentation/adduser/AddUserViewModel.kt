@@ -24,7 +24,11 @@ class AddUserViewModel(
     fun processIntent(intent: AddUserIntent) {
         when (intent) {
             is AddUserIntent.UpdateName -> {
-                val error = if (intent.value.isBlank()) "Name cannot be empty" else null
+                val error = when {
+                    intent.value.isBlank() -> "Name cannot be empty"
+                    intent.value.trim().split("\\s+".toRegex()).size != 2 -> "Enter a first and last name"
+                    else -> null
+                }
                 _state.update { it.copy(name = intent.value, nameError = error) }
             }
             is AddUserIntent.UpdateEmail -> {
@@ -50,7 +54,11 @@ class AddUserViewModel(
 
     private fun submit() {
         val current = _state.value
-        val nameError = if (current.name.isBlank()) "Name cannot be empty" else null
+        val nameError = when {
+            current.name.isBlank() -> "Name cannot be empty"
+            current.name.trim().split("\\s+".toRegex()).size != 2 -> "Enter a first and last name"
+            else -> null
+        }
         val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
         val emailError = if (!emailRegex.matches(current.email)) "Invalid email address" else null
         val birthdayError = if (current.birthday == null) "Birthday is required" else null

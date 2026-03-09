@@ -48,8 +48,20 @@ class CreateUserUseCaseTest {
     }
 
     @Test
-    fun longNameReturnsSuccess() = runTest {
-        val longName = "A".repeat(100)
+    fun singleWordNameReturnsFailure() = runTest {
+        val result = useCase("John", "john@example.com", "male", LocalDate(1990, 1, 1))
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun threeWordNameReturnsFailure() = runTest {
+        val result = useCase("John Middle Doe", "john@example.com", "male", LocalDate(1990, 1, 1))
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun longTwoWordNameReturnsSuccess() = runTest {
+        val longName = "${"A".repeat(50)} ${"B".repeat(50)}"
         val result = useCase(longName, "john@example.com", "male", LocalDate(1990, 1, 1))
         assertTrue(result.isSuccess)
     }
