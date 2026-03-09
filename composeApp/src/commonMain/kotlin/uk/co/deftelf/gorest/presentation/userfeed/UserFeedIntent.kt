@@ -7,6 +7,5 @@ sealed interface UserFeedIntent {
     data class ConfirmDelete(val userId: Long) : UserFeedIntent
     data class UndoDelete(val userId: Long) : UserFeedIntent
     data class CommitDelete(val userId: Long) : UserFeedIntent
-    data class SelectUser(val userId: Long?) : UserFeedIntent
     data object DismissError : UserFeedIntent
 }

@@ -1,5 +1,6 @@
 package uk.co.deftelf.gorest.ui.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,7 @@ fun UserDetailPanel(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp),
         contentAlignment = if (user == null) Alignment.Center else Alignment.TopStart,
     ) {

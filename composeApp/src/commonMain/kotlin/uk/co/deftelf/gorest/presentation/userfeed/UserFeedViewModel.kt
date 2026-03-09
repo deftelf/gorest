@@ -48,9 +48,6 @@ class UserFeedViewModel(
             is UserFeedIntent.ConfirmDelete -> confirmDelete(intent.userId)
             is UserFeedIntent.UndoDelete -> undoDelete(intent.userId)
             is UserFeedIntent.CommitDelete -> commitDelete(intent.userId)
-            is UserFeedIntent.SelectUser -> {
-                _state.update { it.copy(selectedUserId = intent.userId) }
-            }
             is UserFeedIntent.DismissError -> {
                 _state.update { it.copy(error = null, pendingDeleteId = null) }
             }

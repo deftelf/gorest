@@ -6,7 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface Destination : NavKey {
     @Serializable
-    data object Feed : Destination
+    data object UserList : Destination
     @Serializable
     data object AddUser : Destination
+    @Serializable
+    data class UserDetail(val userId: Long) : Destination
 }

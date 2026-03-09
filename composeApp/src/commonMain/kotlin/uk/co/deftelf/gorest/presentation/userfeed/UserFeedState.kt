@@ -7,5 +7,4 @@ data class UserFeedState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val pendingDeleteId: Long? = null,
-    val selectedUserId: Long? = null,
 )

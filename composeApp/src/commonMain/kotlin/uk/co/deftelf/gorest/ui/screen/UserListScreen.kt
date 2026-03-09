@@ -1,6 +1,8 @@
 package uk.co.deftelf.gorest.ui.screen
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -16,16 +18,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigationevent.compose.NavigationBackHandler
 import org.koin.compose.viewmodel.koinViewModel
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedEffect
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedIntent
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedViewModel
-import uk.co.deftelf.gorest.ui.component.AdaptiveUserFeedLayout
 import uk.co.deftelf.gorest.ui.component.DeleteConfirmDialog
+import uk.co.deftelf.gorest.ui.component.ShimmerHost
+import uk.co.deftelf.gorest.ui.component.UserCard
+import uk.co.deftelf.gorest.ui.component.UserCardShimmer
 
 @Composable
-fun UserFeedScreen(
+fun UserListScreen(
     onNavigateToAdd: () -> Unit,
+    onNavigateToDetail: (Long) -> Unit,
     viewModel: UserFeedViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -59,31 +66,41 @@ fun UserFeedScreen(
             }
         },
     ) { paddingValues ->
-        AdaptiveUserFeedLayout(
-            state = state,
-            onUserClick = { userId ->
-                viewModel.processIntent(UserFeedIntent.SelectUser(userId))
-            },
-            onUserLongClick = { userId ->
-                viewModel.processIntent(UserFeedIntent.RequestDelete(userId))
-            },
-            onDeselectUser = {
-                viewModel.processIntent(UserFeedIntent.SelectUser(null))
-            },
-            modifier = Modifier.padding(paddingValues),
-        )
+        if (state.isLoading && state.users.isEmpty()) {
+            ShimmerHost {
+                LazyColumn(contentPadding = paddingValues) {
+                    items(100) {
+                        UserCardShimmer(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        )
+                    }
+                }
+            }
+        } else {
+            LazyColumn(contentPadding = paddingValues) {
+                items(
+                    items = state.users,
+                    key = { it.id },
+                ) { user ->
+                    UserCard(
+                        user = user,
+                        onClick = { onNavigateToDetail(user.id) },
+                        onLongClick = { viewModel.processIntent(UserFeedIntent.RequestDelete(user.id)) },
+                        modifier = Modifier
+                            .animateItem()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
+            }
+        }
 
         state.pendingDeleteId?.let { userId ->
             val user = state.users.find { it.id == userId }
             DeleteConfirmDialog(
                 userId = userId,
                 userName = user?.name ?: "this user",
-                onConfirm = {
-                    viewModel.processIntent(UserFeedIntent.ConfirmDelete(userId))
-                },
-                onDismiss = {
-                    viewModel.processIntent(UserFeedIntent.DismissError)
-                },
+                onConfirm = { viewModel.processIntent(UserFeedIntent.ConfirmDelete(userId)) },
+                onDismiss = { viewModel.processIntent(UserFeedIntent.DismissError) },
             )
         }
     }
