@@ -25,8 +25,9 @@ import kotlinx.datetime.toLocalDateTime
 import uk.co.deftelf.gorest.domain.model.User
 
 private fun Instant.ageInYears(): Int {
+    // Bit of ambiguity on actually what timezone the birthday is but we'll assume local
     val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-    val birth = toLocalDateTime(TimeZone.UTC)
+    val birth = toLocalDateTime(TimeZone.currentSystemDefault())
     var age = today.year - birth.year
     if (today.month < birth.month ||
         (today.month == birth.month && today.day < birth.day)
