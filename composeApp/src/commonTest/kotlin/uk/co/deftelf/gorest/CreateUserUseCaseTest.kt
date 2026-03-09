@@ -12,44 +12,44 @@ class CreateUserUseCaseTest {
 
     @Test
     fun emptyNameReturnsFailure() = runTest {
-        val result = useCase("", "test@example.com", "male", "active")
+        val result = useCase("", "test@example.com", "male")
         assertTrue(result.isFailure)
     }
 
     @Test
     fun blankNameReturnsFailure() = runTest {
-        val result = useCase("   ", "test@example.com", "male", "active")
+        val result = useCase("   ", "test@example.com", "male")
         assertTrue(result.isFailure)
     }
 
     @Test
     fun malformedEmailReturnsFailure() = runTest {
-        val result = useCase("John Doe", "not-an-email", "male", "active")
+        val result = useCase("John Doe", "not-an-email", "male")
         assertTrue(result.isFailure)
     }
 
     @Test
     fun emailWithoutDomainReturnsFailure() = runTest {
-        val result = useCase("John Doe", "john@", "male", "active")
+        val result = useCase("John Doe", "john@", "male")
         assertTrue(result.isFailure)
     }
 
     @Test
     fun emailWithoutTldReturnsFailure() = runTest {
-        val result = useCase("John Doe", "john@example", "male", "active")
+        val result = useCase("John Doe", "john@example", "male")
         assertTrue(result.isFailure)
     }
 
     @Test
     fun validInputReturnsSuccess() = runTest {
-        val result = useCase("John Doe", "john@example.com", "male", "active")
+        val result = useCase("John Doe", "john@example.com", "male")
         assertTrue(result.isSuccess)
     }
 
     @Test
     fun longNameReturnsSuccess() = runTest {
         val longName = "A".repeat(100)
-        val result = useCase(longName, "john@example.com", "male", "active")
+        val result = useCase(longName, "john@example.com", "male")
         assertTrue(result.isSuccess)
     }
 }

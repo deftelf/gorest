@@ -2,41 +2,28 @@ package uk.co.deftelf.gorest.data.remote
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import uk.co.deftelf.gorest.data.remote.dto.CreateUserDto
 import uk.co.deftelf.gorest.data.remote.dto.UserDto
+import uk.co.deftelf.gorest.data.remote.dto.UsersResponse
 
-class GoRestApiService(private val client: HttpClient) {
+class DummyJsonApiService(private val client: HttpClient) {
 
-    suspend fun fetchLastPageUsers(): List<UserDto> {
-        val firstPage: HttpResponse = client.get("users") {
-            url { parameters.append("page", "1") }
-        }
-        val totalPages = firstPage.headers["X-Pagination-Pages"]?.toIntOrNull() ?: 1
-        if (totalPages <= 1) return firstPage.body()
-        val lastPage: HttpResponse = client.get("users") {
-            url { parameters.append("page", totalPages.toString()) }
-        }
-        return lastPage.body()
-    }
+    suspend fun fetchUsers(): List<UserDto> =
+        client.get("users").body<UsersResponse>().users
 
-    suspend fun createUser(dto: UserDto, token: String): UserDto {
-        return client.post("users") {
-            bearerAuth(token)
+    suspend fun createUser(firstName: String, lastName: String, email: String, gender: String): UserDto =
+        client.post("users/add") {
             contentType(ContentType.Application.Json)
-            setBody(dto)
+            setBody(CreateUserDto(firstName, lastName, email, gender))
         }.body()
-    }
 
-    suspend fun deleteUser(id: Long, token: String) {
-        client.delete("users/$id") {
-            bearerAuth(token)
-        }
+    suspend fun deleteUser(id: Long) {
+        client.delete("users/$id")
     }
 }

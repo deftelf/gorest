@@ -1,38 +1,36 @@
 package uk.co.deftelf.gorest.data.mapper
 
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlin.time.Instant
 import uk.co.deftelf.gorest.data.local.CachedUser
 import uk.co.deftelf.gorest.data.remote.dto.UserDto
 import uk.co.deftelf.gorest.domain.model.Gender
 import uk.co.deftelf.gorest.domain.model.User
-import uk.co.deftelf.gorest.domain.model.UserStatus
 
 object UserMapper {
 
     fun UserDto.toDomain(): User = User(
         id = id,
-        name = name,
+        name = "$firstName $lastName".trim(),
         email = email,
-        gender = Gender.valueOf(gender),
-        status = UserStatus.valueOf(status),
-        createdAt = runCatching { Instant.parse(createdAt) }.getOrElse { Instant.fromEpochMilliseconds(0) },
+        gender = runCatching { Gender.valueOf(gender) }.getOrElse { Gender.male },
+        birthday = parseBirthDate(birthDate),
     )
 
     fun CachedUser.toDomain(): User = User(
         id = id,
         name = name,
         email = email,
-        gender = Gender.valueOf(gender),
-        status = UserStatus.valueOf(status),
-        createdAt = runCatching { Instant.parse(created_at) }.getOrElse { Instant.fromEpochMilliseconds(0) },
+        gender = runCatching { Gender.valueOf(gender) }.getOrElse { Gender.male },
+        birthday = runCatching { Instant.parse(birth_date) }.getOrElse { Instant.fromEpochMilliseconds(0) },
     )
 
-    fun User.toDto(): UserDto = UserDto(
-        id = id,
-        name = name,
-        email = email,
-        gender = gender.name,
-        status = status.name,
-        createdAt = createdAt.toString(),
-    )
+    /** Parses DummyJSON's non-padded "yyyy-M-d" date string to an Instant. */
+    fun parseBirthDate(dateStr: String): Instant = runCatching {
+        val parts = dateStr.split("-")
+        LocalDate(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+            .atStartOfDayIn(TimeZone.UTC)
+    }.getOrElse { Instant.fromEpochMilliseconds(0) }
 }

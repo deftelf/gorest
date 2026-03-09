@@ -4,10 +4,10 @@ import uk.co.deftelf.gorest.domain.model.User
 import uk.co.deftelf.gorest.domain.repository.UserRepository
 
 class CreateUserUseCase(private val repository: UserRepository) {
-    suspend operator fun invoke(name: String, email: String, gender: String, status: String): Result<User> {
+    suspend operator fun invoke(name: String, email: String, gender: String): Result<User> {
         if (name.isBlank()) return Result.failure(IllegalArgumentException("Name cannot be empty"))
         val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
         if (!emailRegex.matches(email)) return Result.failure(IllegalArgumentException("Invalid email address"))
-        return repository.createUser(name, email, gender, status)
+        return repository.createUser(name, email, gender)
     }
 }

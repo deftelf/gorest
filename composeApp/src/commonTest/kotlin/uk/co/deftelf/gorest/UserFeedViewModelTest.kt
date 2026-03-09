@@ -9,9 +9,9 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlin.time.Instant
 import uk.co.deftelf.gorest.domain.model.Gender
 import uk.co.deftelf.gorest.domain.model.User
-import uk.co.deftelf.gorest.domain.model.UserStatus
 import uk.co.deftelf.gorest.domain.usecase.DeleteUserUseCase
 import uk.co.deftelf.gorest.domain.usecase.GetUsersUseCase
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedIntent
@@ -21,7 +21,6 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.Instant
 
 class UserFeedViewModelTest {
 
@@ -43,8 +42,7 @@ class UserFeedViewModelTest {
         name = name,
         email = "user$id@test.com",
         gender = Gender.male,
-        status = UserStatus.active,
-        createdAt = Instant.parse("2024-01-01T00:00:00Z"),
+        birthday = Instant.parse("1990-01-01T00:00:00Z"),
     )
 
     @Test

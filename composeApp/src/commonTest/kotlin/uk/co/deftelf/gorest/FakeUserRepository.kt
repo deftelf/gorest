@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlin.time.Instant
 import uk.co.deftelf.gorest.domain.model.Gender
 import uk.co.deftelf.gorest.domain.model.User
-import uk.co.deftelf.gorest.domain.model.UserStatus
 import uk.co.deftelf.gorest.domain.repository.UserRepository
 
 class FakeUserRepository : UserRepository {
@@ -33,7 +32,6 @@ class FakeUserRepository : UserRepository {
         name: String,
         email: String,
         gender: String,
-        status: String,
     ): Result<User> {
         if (shouldFailCreate) return Result.failure(Exception("Create failed"))
         val user = User(
@@ -41,8 +39,7 @@ class FakeUserRepository : UserRepository {
             name = name,
             email = email,
             gender = Gender.valueOf(gender),
-            status = UserStatus.valueOf(status),
-            createdAt = Instant.parse("2024-01-01T00:00:00Z"),
+            birthday = Instant.fromEpochMilliseconds(0),
         )
         _users.value = listOf(user) + _users.value
         return Result.success(user)

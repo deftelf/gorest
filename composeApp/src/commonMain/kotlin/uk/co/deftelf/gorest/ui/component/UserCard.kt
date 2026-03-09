@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -20,8 +19,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import uk.co.deftelf.gorest.domain.model.User
-import uk.co.deftelf.gorest.util.toRelativeString
+
+private fun Instant.ageInYears(): Int {
+    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    val birth = toLocalDateTime(TimeZone.UTC)
+    var age = today.year - birth.year
+    if (today.month < birth.month ||
+        (today.month == birth.month && today.day < birth.day)
+    ) age--
+    return age
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -62,21 +73,12 @@ fun UserCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = user.createdAt.toRelativeString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = user.status.name,
+                text = "${user.birthday.ageInYears()} yrs",
                 style = MaterialTheme.typography.labelMedium,
-                color = if (user.status.name == "active")
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )
         }
     }

@@ -13,6 +13,6 @@ actual class KtorClientFactory actual constructor() {
     actual fun create(): HttpClient = HttpClient(Java) {
         install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
         install(Logging) { level = LogLevel.HEADERS }
-        defaultRequest { url("https://gorest.co.in/public/v2/") }
+        defaultRequest { url("https://dummyjson.com/") }
     }
 }

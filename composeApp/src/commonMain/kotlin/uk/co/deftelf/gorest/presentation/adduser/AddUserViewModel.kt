@@ -9,8 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uk.co.deftelf.gorest.domain.model.Gender
-import uk.co.deftelf.gorest.domain.model.UserStatus
 import uk.co.deftelf.gorest.domain.usecase.CreateUserUseCase
 
 class AddUserViewModel(
@@ -37,9 +35,6 @@ class AddUserViewModel(
             is AddUserIntent.UpdateGender -> {
                 _state.update { it.copy(gender = intent.gender) }
             }
-            is AddUserIntent.UpdateStatus -> {
-                _state.update { it.copy(status = intent.status) }
-            }
             is AddUserIntent.Submit -> submit()
         }
     }
@@ -55,7 +50,7 @@ class AddUserViewModel(
         }
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true) }
-            createUserUseCase(current.name, current.email, current.gender.name, current.status.name)
+            createUserUseCase(current.name, current.email, current.gender.name)
                 .onSuccess {
                     _state.update { it.copy(isSubmitting = false, isSuccess = true) }
                     _effects.send(AddUserEffect.NavigateBack)

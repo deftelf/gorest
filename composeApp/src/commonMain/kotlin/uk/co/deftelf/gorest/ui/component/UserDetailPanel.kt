@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import uk.co.deftelf.gorest.domain.model.User
-import uk.co.deftelf.gorest.util.toRelativeString
 
 @Composable
 fun UserDetailPanel(
@@ -48,10 +47,6 @@ fun UserDetailPanel(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 DetailRow("Gender", user.gender.name)
-                Spacer(modifier = Modifier.height(8.dp))
-                DetailRow("Status", user.status.name)
-                Spacer(modifier = Modifier.height(8.dp))
-                DetailRow("Created", user.createdAt.toRelativeString())
                 Spacer(modifier = Modifier.height(8.dp))
                 DetailRow("ID", user.id.toString())
             }

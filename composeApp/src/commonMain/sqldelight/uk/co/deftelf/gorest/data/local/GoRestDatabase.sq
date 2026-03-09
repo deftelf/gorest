@@ -4,14 +4,15 @@ CREATE TABLE IF NOT EXISTS CachedUser (
     email TEXT NOT NULL,
     gender TEXT NOT NULL,
     status TEXT NOT NULL,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    birth_date TEXT NOT NULL DEFAULT ''
 );
 
 selectAll:
 SELECT * FROM CachedUser ORDER BY id DESC;
 
 insertOrReplace:
-INSERT OR REPLACE INTO CachedUser VALUES (?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO CachedUser VALUES (?, ?, ?, ?, ?, ?, ?);
 
 deleteById:
 DELETE FROM CachedUser WHERE id = ?;

@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import org.koin.compose.viewmodel.koinViewModel
 import uk.co.deftelf.gorest.domain.model.Gender
-import uk.co.deftelf.gorest.domain.model.UserStatus
 import uk.co.deftelf.gorest.presentation.adduser.AddUserEffect
 import uk.co.deftelf.gorest.presentation.adduser.AddUserIntent
 import uk.co.deftelf.gorest.presentation.adduser.AddUserViewModel
@@ -98,18 +97,6 @@ fun AddUserScreen(
                         selected = state.gender == gender,
                         onClick = { viewModel.processIntent(AddUserIntent.UpdateGender(gender)) },
                         label = { Text(gender.name) },
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text("Status")
-            Row {
-                UserStatus.entries.forEach { status ->
-                    FilterChip(
-                        selected = state.status == status,
-                        onClick = { viewModel.processIntent(AddUserIntent.UpdateStatus(status)) },
-                        label = { Text(status.name) },
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
