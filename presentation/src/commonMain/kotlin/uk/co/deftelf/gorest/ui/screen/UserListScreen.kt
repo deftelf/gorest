@@ -1,8 +1,14 @@
 package uk.co.deftelf.gorest.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -16,7 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigationevent.compose.NavigationBackHandler
@@ -50,6 +59,19 @@ fun UserListScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
+    var fabVisible by remember { mutableStateOf(true) }
+    var prevIndex by remember { mutableStateOf(0) }
+    var prevOffset by remember { mutableStateOf(0) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) ->
+                fabVisible = index < prevIndex || (index == prevIndex && offset <= prevOffset)
+                prevIndex = index
+                prevOffset = offset
+            }
+    }
 
     LaunchedEffect(networkMonitor.isConnected) {
         var noNetworkJob: Job? = null
@@ -91,8 +113,14 @@ fun UserListScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAdd) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.add_user_fab_description))
+            AnimatedVisibility(
+                visible = fabVisible,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut(),
+            ) {
+                FloatingActionButton(onClick = onNavigateToAdd) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.add_user_fab_description))
+                }
             }
         },
     ) { paddingValues ->
@@ -107,7 +135,7 @@ fun UserListScreen(
                 }
             }
         } else {
-            LazyColumn(contentPadding = paddingValues) {
+            LazyColumn(state = listState, contentPadding = paddingValues) {
                 items(
                     items = state.users,
                     key = { it.id },

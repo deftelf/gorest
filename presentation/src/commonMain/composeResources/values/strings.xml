@@ -18,13 +18,13 @@
     <!-- User List -->
     <string name="add_user_fab_description">Add user</string>
     <string name="no_internet_connection">No internet connection</string>
-    <string name="user_deleted">%s deleted</string>
+    <string name="user_deleted">%1$s deleted</string>
     <string name="undo">Undo</string>
     <string name="this_user">this user</string>
 
     <!-- Delete Dialog -->
     <string name="delete_user_title">Delete User</string>
-    <string name="delete_confirm_message">Delete \"%s\"? This action can be undone within 5 seconds.</string>
+    <string name="delete_confirm_message">Delete "%1$s"?</string>
 
     <!-- User Detail -->
     <string name="select_user_prompt">Select a user to see details</string>
