@@ -72,6 +72,7 @@ class AddUserViewModel(
                 .onSuccess {
                     _state.update { it.copy(isSubmitting = false, isSuccess = true) }
                     _effects.send(AddUserEffect.NavigateBack)
+                    _state.value = AddUserState()
                 }
                 .onFailure { e ->
                     _state.update { it.copy(isSubmitting = false, generalError = e.message) }
