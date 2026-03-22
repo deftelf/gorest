@@ -36,7 +36,7 @@ class UserFeedViewModel(
             error = error,
             pendingDeleteId = pendingDeleteId,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserFeedUiState())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, UserFeedUiState())
 
     private val _effects = Channel<UserFeedEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()

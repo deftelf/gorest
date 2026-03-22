@@ -13,6 +13,7 @@ class FakeUserRepository : UserRepository {
     private val _users = MutableStateFlow<List<User>>(emptyList())
     val deletedIds = mutableListOf<Long>()
     var refreshCount = 0
+    var createdCount = 0
     var shouldFailRefresh = false
     var shouldFailCreate = false
     var shouldFailDelete = false
@@ -36,6 +37,7 @@ class FakeUserRepository : UserRepository {
         birthday: LocalDate,
     ): Result<User> {
         if (shouldFailCreate) return Result.failure(Exception("Create failed"))
+        createdCount++
         val user = User(
             id = System.currentTimeMillis(),
             name = name,

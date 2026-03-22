@@ -48,7 +48,7 @@ class AddUserViewModel(
             isSuccess = v[9] as Boolean,
             generalError = v[10] as String?,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AddUserUiState())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, AddUserUiState())
 
     private val _effects = Channel<AddUserEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()

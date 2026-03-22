@@ -25,6 +25,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class UserFeedViewModelTest {
 
     private val scheduler = TestCoroutineScheduler()
@@ -51,6 +52,7 @@ class UserFeedViewModelTest {
     @Test
     fun initialLoadTriggersRefresh() = runTest(scheduler) {
         val repo = FakeUserRepository()
+        @Suppress("unused", "UNUSED_VARIABLE")
         val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
         advanceUntilIdle()
         assertEquals(1, repo.refreshCount)
