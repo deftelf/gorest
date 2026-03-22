@@ -3,7 +3,7 @@ package uk.co.deftelf.gorest.presentation.adduser
 import kotlinx.datetime.LocalDate
 import uk.co.deftelf.gorest.domain.model.Gender
 
-data class AddUserState(
+data class AddUserUiState(
     val name: String = "",
     val email: String = "",
     val gender: Gender = Gender.male,

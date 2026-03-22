@@ -15,15 +15,15 @@ class AddUserViewModel(
     private val createUserUseCase: CreateUserUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(AddUserState())
-    val state: StateFlow<AddUserState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(AddUserUiState())
+    val state: StateFlow<AddUserUiState> = _state.asStateFlow()
 
     private val _effects = Channel<AddUserEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
-    fun processIntent(intent: AddUserIntent) {
+    fun processIntent(intent: AddUserUiEvent) {
         when (intent) {
-            is AddUserIntent.UpdateName -> {
+            is AddUserUiEvent.UpdateName -> {
                 val error = when {
                     intent.value.isBlank() -> "Name cannot be empty"
                     intent.value.trim().split("\\s+".toRegex()).size != 2 -> "Enter a first and last name"
@@ -31,24 +31,24 @@ class AddUserViewModel(
                 }
                 _state.update { it.copy(name = intent.value, nameError = error) }
             }
-            is AddUserIntent.UpdateEmail -> {
+            is AddUserUiEvent.UpdateEmail -> {
                 val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
                 val error = if (!emailRegex.matches(intent.value)) "Invalid email address" else null
                 _state.update { it.copy(email = intent.value, emailError = error) }
             }
-            is AddUserIntent.UpdateGender -> {
+            is AddUserUiEvent.UpdateGender -> {
                 _state.update { it.copy(gender = intent.gender) }
             }
-            is AddUserIntent.UpdateBirthday -> {
+            is AddUserUiEvent.UpdateBirthday -> {
                 _state.update { it.copy(birthday = intent.date, birthdayError = null, showDatePicker = false) }
             }
-            is AddUserIntent.ShowDatePicker -> {
+            is AddUserUiEvent.ShowDatePicker -> {
                 _state.update { it.copy(showDatePicker = true) }
             }
-            is AddUserIntent.HideDatePicker -> {
+            is AddUserUiEvent.HideDatePicker -> {
                 _state.update { it.copy(showDatePicker = false) }
             }
-            is AddUserIntent.Submit -> submit()
+            is AddUserUiEvent.Submit -> submit()
         }
     }
 
@@ -72,7 +72,7 @@ class AddUserViewModel(
                 .onSuccess {
                     _state.update { it.copy(isSubmitting = false, isSuccess = true) }
                     _effects.send(AddUserEffect.NavigateBack)
-                    _state.value = AddUserState()
+                    _state.value = AddUserUiState()
                 }
                 .onFailure { e ->
                     _state.update { it.copy(isSubmitting = false, generalError = e.message) }

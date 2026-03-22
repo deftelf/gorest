@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
@@ -36,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import gorest.presentation.generated.resources.Res
 import gorest.presentation.generated.resources.add_user_title
 import gorest.presentation.generated.resources.back
@@ -46,7 +48,7 @@ import gorest.presentation.generated.resources.gender_label
 import gorest.presentation.generated.resources.name_label
 import gorest.presentation.generated.resources.ok
 import gorest.presentation.generated.resources.select_date_description
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -55,7 +57,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import uk.co.deftelf.gorest.domain.model.Gender
 import uk.co.deftelf.gorest.presentation.adduser.AddUserEffect
-import uk.co.deftelf.gorest.presentation.adduser.AddUserIntent
+import uk.co.deftelf.gorest.presentation.adduser.AddUserUiEvent
 import uk.co.deftelf.gorest.presentation.adduser.AddUserViewModel
 
 private fun Long.toLocalDate(): LocalDate =
@@ -63,7 +65,7 @@ private fun Long.toLocalDate(): LocalDate =
 
 private fun LocalDate.formatted(): String {
     val month = month.name.lowercase().replaceFirstChar { it.uppercase() }
-    return "$dayOfMonth $month $year"
+    return "$day $month $year"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +74,7 @@ fun AddUserScreen(
     onNavigateBack: () -> Unit,
     viewModel: AddUserViewModel = koinViewModel(),
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
@@ -88,16 +90,16 @@ fun AddUserScreen(
 
     if (state.showDatePicker) {
         DatePickerDialog(
-            onDismissRequest = { viewModel.processIntent(AddUserIntent.HideDatePicker) },
+            onDismissRequest = { viewModel.processIntent(AddUserUiEvent.HideDatePicker) },
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.toLocalDate()?.let { date ->
-                        viewModel.processIntent(AddUserIntent.UpdateBirthday(date))
+                        viewModel.processIntent(AddUserUiEvent.UpdateBirthday(date))
                     }
                 }) { Text(stringResource(Res.string.ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.processIntent(AddUserIntent.HideDatePicker) }) {
+                TextButton(onClick = { viewModel.processIntent(AddUserUiEvent.HideDatePicker) }) {
                     Text(stringResource(Res.string.cancel))
                 }
             },
@@ -112,7 +114,7 @@ fun AddUserScreen(
                 title = { Text(stringResource(Res.string.add_user_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(Res.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
             )
@@ -126,7 +128,7 @@ fun AddUserScreen(
         ) {
             OutlinedTextField(
                 value = state.name,
-                onValueChange = { viewModel.processIntent(AddUserIntent.UpdateName(it)) },
+                onValueChange = { viewModel.processIntent(AddUserUiEvent.UpdateName(it)) },
                 label = { Text(stringResource(Res.string.name_label)) },
                 isError = state.nameError != null,
                 supportingText = state.nameError?.let { { Text(it) } },
@@ -135,7 +137,7 @@ fun AddUserScreen(
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
                 value = state.email,
-                onValueChange = { viewModel.processIntent(AddUserIntent.UpdateEmail(it)) },
+                onValueChange = { viewModel.processIntent(AddUserUiEvent.UpdateEmail(it)) },
                 label = { Text(stringResource(Res.string.email_label)) },
                 isError = state.emailError != null,
                 supportingText = state.emailError?.let { { Text(it) } },
@@ -157,7 +159,7 @@ fun AddUserScreen(
                 )
                 Box(modifier = Modifier
                     .matchParentSize()
-                    .clickable { viewModel.processIntent(AddUserIntent.ShowDatePicker) }
+                    .clickable { viewModel.processIntent(AddUserUiEvent.ShowDatePicker) }
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -166,7 +168,7 @@ fun AddUserScreen(
                 Gender.entries.forEach { gender ->
                     FilterChip(
                         selected = state.gender == gender,
-                        onClick = { viewModel.processIntent(AddUserIntent.UpdateGender(gender)) },
+                        onClick = { viewModel.processIntent(AddUserUiEvent.UpdateGender(gender)) },
                         label = { Text(gender.name) },
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -174,7 +176,7 @@ fun AddUserScreen(
             }
             Spacer(modifier = Modifier.height(24.dp))
             Button(
-                onClick = { viewModel.processIntent(AddUserIntent.Submit) },
+                onClick = { viewModel.processIntent(AddUserUiEvent.Submit) },
                 enabled = !state.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
             ) {

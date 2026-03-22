@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.viewmodel.koinViewModel
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedViewModel
 import uk.co.deftelf.gorest.ui.component.UserDetailPanel
@@ -17,7 +18,7 @@ fun UserDetailScreen(
     userId: Long?,
     viewModel: UserFeedViewModel = koinViewModel(),
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val user = state.users.find { it.id == userId }
     UserDetailPanel(user = user, modifier = Modifier.fillMaxSize().safeDrawingPadding())
 }

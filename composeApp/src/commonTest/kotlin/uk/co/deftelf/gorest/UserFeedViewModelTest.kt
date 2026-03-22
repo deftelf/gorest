@@ -16,7 +16,7 @@ import uk.co.deftelf.gorest.domain.model.User
 import uk.co.deftelf.gorest.domain.usecase.DeleteUserUseCase
 import uk.co.deftelf.gorest.domain.usecase.GetUsersUseCase
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedEffect
-import uk.co.deftelf.gorest.presentation.userfeed.UserFeedIntent
+import uk.co.deftelf.gorest.presentation.userfeed.UserFeedUiEvent
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedViewModel
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -63,7 +63,7 @@ class UserFeedViewModelTest {
         val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
         advanceUntilIdle()
 
-        vm.processIntent(UserFeedIntent.ConfirmDelete(2L))
+        vm.processIntent(UserFeedUiEvent.ConfirmDelete(2L))
         advanceUntilIdle()
 
         assertTrue(vm.state.value.users.none { it.id == 2L })
@@ -77,11 +77,11 @@ class UserFeedViewModelTest {
         val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
         advanceUntilIdle()
 
-        vm.processIntent(UserFeedIntent.ConfirmDelete(2L))
+        vm.processIntent(UserFeedUiEvent.ConfirmDelete(2L))
         runCurrent()
         assertTrue(vm.state.value.users.none { it.id == 2L })
 
-        vm.processIntent(UserFeedIntent.UndoDelete(2L))
+        vm.processIntent(UserFeedUiEvent.UndoDelete(2L))
         runCurrent()
         assertTrue(vm.state.value.users.any { it.id == 2L })
         assertEquals(3, vm.state.value.users.size)
@@ -94,7 +94,7 @@ class UserFeedViewModelTest {
         val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
         advanceUntilIdle()
 
-        vm.processIntent(UserFeedIntent.ConfirmDelete(1L))
+        vm.processIntent(UserFeedUiEvent.ConfirmDelete(1L))
         runCurrent()
         assertTrue(repo.deletedIds.isEmpty())
 
@@ -118,7 +118,7 @@ class UserFeedViewModelTest {
         val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
         advanceUntilIdle()
 
-        vm.processIntent(UserFeedIntent.RequestDelete(2L))
+        vm.processIntent(UserFeedUiEvent.RequestDelete(2L))
         runCurrent()
 
         assertEquals(2L, vm.state.value.pendingDeleteId)
@@ -131,9 +131,9 @@ class UserFeedViewModelTest {
         val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
         advanceUntilIdle()
 
-        vm.processIntent(UserFeedIntent.RequestDelete(2L))
+        vm.processIntent(UserFeedUiEvent.RequestDelete(2L))
         runCurrent()
-        vm.processIntent(UserFeedIntent.DismissError)
+        vm.processIntent(UserFeedUiEvent.DismissError)
         runCurrent()
 
         assertNull(vm.state.value.pendingDeleteId)
@@ -149,7 +149,7 @@ class UserFeedViewModelTest {
         val effects = mutableListOf<UserFeedEffect>()
         val job = launch { vm.effects.collect { effects.add(it) } }
 
-        vm.processIntent(UserFeedIntent.ConfirmDelete(1L))
+        vm.processIntent(UserFeedUiEvent.ConfirmDelete(1L))
         advanceTimeBy(5_001)
         advanceUntilIdle()
 
@@ -165,9 +165,9 @@ class UserFeedViewModelTest {
         val vm = UserFeedViewModel(GetUsersUseCase(repo), DeleteUserUseCase(repo))
         advanceUntilIdle()
 
-        vm.processIntent(UserFeedIntent.ConfirmDelete(1L))
+        vm.processIntent(UserFeedUiEvent.ConfirmDelete(1L))
         runCurrent()
-        vm.processIntent(UserFeedIntent.UndoDelete(1L))
+        vm.processIntent(UserFeedUiEvent.UndoDelete(1L))
         runCurrent()
 
         advanceTimeBy(5_001)

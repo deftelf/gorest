@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigationevent.compose.NavigationBackHandler
 import gorest.presentation.generated.resources.Res
 import gorest.presentation.generated.resources.add_user_fab_description
@@ -43,7 +44,7 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import uk.co.deftelf.gorest.data.connectivity.NetworkMonitor
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedEffect
-import uk.co.deftelf.gorest.presentation.userfeed.UserFeedIntent
+import uk.co.deftelf.gorest.presentation.userfeed.UserFeedUiEvent
 import uk.co.deftelf.gorest.presentation.userfeed.UserFeedViewModel
 import uk.co.deftelf.gorest.ui.component.DeleteConfirmDialog
 import uk.co.deftelf.gorest.ui.component.ShimmerHost
@@ -57,7 +58,7 @@ fun UserListScreen(
     viewModel: UserFeedViewModel = koinViewModel(),
     networkMonitor: NetworkMonitor = koinInject(),
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     var fabVisible by remember { mutableStateOf(true) }
@@ -100,7 +101,7 @@ fun UserListScreen(
                         duration = SnackbarDuration.Long,
                     )
                     if (result == SnackbarResult.ActionPerformed) {
-                        viewModel.processIntent(UserFeedIntent.UndoDelete(effect.userId))
+                        viewModel.processIntent(UserFeedUiEvent.UndoDelete(effect.userId))
                     }
                 }
                 is UserFeedEffect.ShowError -> {
@@ -143,7 +144,7 @@ fun UserListScreen(
                     UserCard(
                         user = user,
                         onClick = { onNavigateToDetail(user.id) },
-                        onLongClick = { viewModel.processIntent(UserFeedIntent.RequestDelete(user.id)) },
+                        onLongClick = { viewModel.processIntent(UserFeedUiEvent.RequestDelete(user.id)) },
                         modifier = Modifier
                             .animateItem()
                             .padding(horizontal = 16.dp, vertical = 4.dp),
@@ -157,8 +158,8 @@ fun UserListScreen(
             DeleteConfirmDialog(
                 userId = userId,
                 userName = user?.name ?: stringResource(Res.string.this_user),
-                onConfirm = { viewModel.processIntent(UserFeedIntent.ConfirmDelete(userId)) },
-                onDismiss = { viewModel.processIntent(UserFeedIntent.DismissError) },
+                onConfirm = { viewModel.processIntent(UserFeedUiEvent.ConfirmDelete(userId)) },
+                onDismiss = { viewModel.processIntent(UserFeedUiEvent.DismissError) },
             )
         }
     }

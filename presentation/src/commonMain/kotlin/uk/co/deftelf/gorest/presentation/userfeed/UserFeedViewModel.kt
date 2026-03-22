@@ -21,8 +21,8 @@ class UserFeedViewModel(
     private val deleteUserUseCase: DeleteUserUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(UserFeedState())
-    val state: StateFlow<UserFeedState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(UserFeedUiState())
+    val state: StateFlow<UserFeedUiState> = _state.asStateFlow()
 
     private val _effects = Channel<UserFeedEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
@@ -35,20 +35,20 @@ class UserFeedViewModel(
                 _state.update { it.copy(users = users, isLoading = false) }
             }
             .launchIn(viewModelScope)
-        processIntent(UserFeedIntent.LoadUsers)
+        processIntent(UserFeedUiEvent.LoadUsers)
     }
 
-    fun processIntent(intent: UserFeedIntent) {
+    fun processIntent(intent: UserFeedUiEvent) {
         when (intent) {
-            is UserFeedIntent.LoadUsers -> refresh()
-            is UserFeedIntent.Refresh -> refresh()
-            is UserFeedIntent.RequestDelete -> {
+            is UserFeedUiEvent.LoadUsers -> refresh()
+            is UserFeedUiEvent.Refresh -> refresh()
+            is UserFeedUiEvent.RequestDelete -> {
                 _state.update { it.copy(pendingDeleteId = intent.userId) }
             }
-            is UserFeedIntent.ConfirmDelete -> confirmDelete(intent.userId)
-            is UserFeedIntent.UndoDelete -> undoDelete(intent.userId)
-            is UserFeedIntent.CommitDelete -> commitDelete(intent.userId)
-            is UserFeedIntent.DismissError -> {
+            is UserFeedUiEvent.ConfirmDelete -> confirmDelete(intent.userId)
+            is UserFeedUiEvent.UndoDelete -> undoDelete(intent.userId)
+            is UserFeedUiEvent.CommitDelete -> commitDelete(intent.userId)
+            is UserFeedUiEvent.DismissError -> {
                 _state.update { it.copy(error = null, pendingDeleteId = null) }
             }
         }
@@ -73,7 +73,7 @@ class UserFeedViewModel(
         viewModelScope.launch {
             _effects.send(UserFeedEffect.ShowUndoSnackbar(userId, user.name))
             delay(5_000)
-            processIntent(UserFeedIntent.CommitDelete(userId))
+            processIntent(UserFeedUiEvent.CommitDelete(userId))
         }
     }
 

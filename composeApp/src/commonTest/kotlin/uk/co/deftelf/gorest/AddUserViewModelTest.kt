@@ -17,7 +17,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import uk.co.deftelf.gorest.domain.usecase.CreateUserUseCase
 import uk.co.deftelf.gorest.presentation.adduser.AddUserEffect
-import uk.co.deftelf.gorest.presentation.adduser.AddUserIntent
+import uk.co.deftelf.gorest.presentation.adduser.AddUserUiEvent
 import uk.co.deftelf.gorest.presentation.adduser.AddUserViewModel
 
 class AddUserViewModelTest {
@@ -44,48 +44,48 @@ class AddUserViewModelTest {
     @Test
     fun emptyNameShowsError() = runTest(scheduler) {
         val (vm, _) = createVm()
-        vm.processIntent(AddUserIntent.UpdateName(""))
+        vm.processIntent(AddUserUiEvent.UpdateName(""))
         assertNotNull(vm.state.value.nameError)
     }
 
     @Test
     fun validNameClearsError() = runTest(scheduler) {
         val (vm, _) = createVm()
-        vm.processIntent(AddUserIntent.UpdateName(""))
-        vm.processIntent(AddUserIntent.UpdateName("John Doe"))
+        vm.processIntent(AddUserUiEvent.UpdateName(""))
+        vm.processIntent(AddUserUiEvent.UpdateName("John Doe"))
         assertNull(vm.state.value.nameError)
     }
 
     @Test
     fun invalidEmailShowsError() = runTest(scheduler) {
         val (vm, _) = createVm()
-        vm.processIntent(AddUserIntent.UpdateEmail("not-an-email"))
+        vm.processIntent(AddUserUiEvent.UpdateEmail("not-an-email"))
         assertNotNull(vm.state.value.emailError)
     }
 
     @Test
     fun validEmailClearsError() = runTest(scheduler) {
         val (vm, _) = createVm()
-        vm.processIntent(AddUserIntent.UpdateEmail("not-an-email"))
-        vm.processIntent(AddUserIntent.UpdateEmail("valid@example.com"))
+        vm.processIntent(AddUserUiEvent.UpdateEmail("not-an-email"))
+        vm.processIntent(AddUserUiEvent.UpdateEmail("valid@example.com"))
         assertNull(vm.state.value.emailError)
     }
 
     @Test
     fun submitWithEmptyNameShowsError() = runTest(scheduler) {
         val (vm, _) = createVm()
-        vm.processIntent(AddUserIntent.UpdateEmail("valid@example.com"))
-        vm.processIntent(AddUserIntent.Submit)
+        vm.processIntent(AddUserUiEvent.UpdateEmail("valid@example.com"))
+        vm.processIntent(AddUserUiEvent.Submit)
         assertNotNull(vm.state.value.nameError)
     }
 
     @Test
     fun validSubmitSetsSuccess() = runTest(scheduler) {
         val (vm, _) = createVm()
-        vm.processIntent(AddUserIntent.UpdateName("John Doe"))
-        vm.processIntent(AddUserIntent.UpdateEmail("john@example.com"))
-        vm.processIntent(AddUserIntent.UpdateBirthday(LocalDate(1990, 1, 1)))
-        vm.processIntent(AddUserIntent.Submit)
+        vm.processIntent(AddUserUiEvent.UpdateName("John Doe"))
+        vm.processIntent(AddUserUiEvent.UpdateEmail("john@example.com"))
+        vm.processIntent(AddUserUiEvent.UpdateBirthday(LocalDate(1990, 1, 1)))
+        vm.processIntent(AddUserUiEvent.Submit)
         advanceUntilIdle()
         assertTrue(vm.state.value.isSuccess)
     }
@@ -93,9 +93,9 @@ class AddUserViewModelTest {
     @Test
     fun submitWithoutBirthdayShowsBirthdayError() = runTest(scheduler) {
         val (vm, _) = createVm()
-        vm.processIntent(AddUserIntent.UpdateName("John Doe"))
-        vm.processIntent(AddUserIntent.UpdateEmail("john@example.com"))
-        vm.processIntent(AddUserIntent.Submit)
+        vm.processIntent(AddUserUiEvent.UpdateName("John Doe"))
+        vm.processIntent(AddUserUiEvent.UpdateEmail("john@example.com"))
+        vm.processIntent(AddUserUiEvent.Submit)
         assertNotNull(vm.state.value.birthdayError)
     }
 
@@ -103,10 +103,10 @@ class AddUserViewModelTest {
     fun submitWithRepositoryFailureShowsGeneralError() = runTest(scheduler) {
         val repo = FakeUserRepository().apply { shouldFailCreate = true }
         val vm = AddUserViewModel(CreateUserUseCase(repo))
-        vm.processIntent(AddUserIntent.UpdateName("John Doe"))
-        vm.processIntent(AddUserIntent.UpdateEmail("john@example.com"))
-        vm.processIntent(AddUserIntent.UpdateBirthday(LocalDate(1990, 1, 1)))
-        vm.processIntent(AddUserIntent.Submit)
+        vm.processIntent(AddUserUiEvent.UpdateName("John Doe"))
+        vm.processIntent(AddUserUiEvent.UpdateEmail("john@example.com"))
+        vm.processIntent(AddUserUiEvent.UpdateBirthday(LocalDate(1990, 1, 1)))
+        vm.processIntent(AddUserUiEvent.Submit)
         advanceUntilIdle()
         assertNotNull(vm.state.value.generalError)
     }
@@ -114,9 +114,9 @@ class AddUserViewModelTest {
     @Test
     fun showDatePickerUpdatesState() = runTest(scheduler) {
         val (vm, _) = createVm()
-        vm.processIntent(AddUserIntent.ShowDatePicker)
+        vm.processIntent(AddUserUiEvent.ShowDatePicker)
         assertTrue(vm.state.value.showDatePicker)
-        vm.processIntent(AddUserIntent.HideDatePicker)
+        vm.processIntent(AddUserUiEvent.HideDatePicker)
         assertTrue(!vm.state.value.showDatePicker)
     }
 
@@ -125,10 +125,10 @@ class AddUserViewModelTest {
         val (vm, _) = createVm()
         val effects = mutableListOf<AddUserEffect>()
         val job = launch { vm.effects.collect { effects.add(it) } }
-        vm.processIntent(AddUserIntent.UpdateName("John Doe"))
-        vm.processIntent(AddUserIntent.UpdateEmail("john@example.com"))
-        vm.processIntent(AddUserIntent.UpdateBirthday(LocalDate(1990, 1, 1)))
-        vm.processIntent(AddUserIntent.Submit)
+        vm.processIntent(AddUserUiEvent.UpdateName("John Doe"))
+        vm.processIntent(AddUserUiEvent.UpdateEmail("john@example.com"))
+        vm.processIntent(AddUserUiEvent.UpdateBirthday(LocalDate(1990, 1, 1)))
+        vm.processIntent(AddUserUiEvent.Submit)
         advanceUntilIdle()
         assertTrue(effects.any { it is AddUserEffect.NavigateBack })
         job.cancel()
