@@ -5,12 +5,13 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uk.co.deftelf.gorest.domain.model.User
 import uk.co.deftelf.gorest.domain.usecase.DeleteUserUseCase
@@ -21,8 +22,21 @@ class UserFeedViewModel(
     private val deleteUserUseCase: DeleteUserUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(UserFeedUiState())
-    val state: StateFlow<UserFeedUiState> = _state.asStateFlow()
+    private val users = MutableStateFlow<List<User>>(emptyList())
+    private val isLoading = MutableStateFlow(true)
+    private val error = MutableStateFlow<String?>(null)
+    private val pendingDeleteId = MutableStateFlow<Long?>(null)
+
+    val state: StateFlow<UserFeedUiState> = combine(
+        users, isLoading, error, pendingDeleteId,
+    ) { users, isLoading, error, pendingDeleteId ->
+        UserFeedUiState(
+            users = users,
+            isLoading = isLoading,
+            error = error,
+            pendingDeleteId = pendingDeleteId,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserFeedUiState())
 
     private val _effects = Channel<UserFeedEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
@@ -31,8 +45,9 @@ class UserFeedViewModel(
 
     init {
         getUsersUseCase()
-            .onEach { users ->
-                _state.update { it.copy(users = users, isLoading = false) }
+            .onEach { fetchedUsers ->
+                users.value = fetchedUsers
+                isLoading.value = false
             }
             .launchIn(viewModelScope)
         processIntent(UserFeedUiEvent.LoadUsers)
@@ -43,33 +58,34 @@ class UserFeedViewModel(
             is UserFeedUiEvent.LoadUsers -> refresh()
             is UserFeedUiEvent.Refresh -> refresh()
             is UserFeedUiEvent.RequestDelete -> {
-                _state.update { it.copy(pendingDeleteId = intent.userId) }
+                pendingDeleteId.value = intent.userId
             }
             is UserFeedUiEvent.ConfirmDelete -> confirmDelete(intent.userId)
             is UserFeedUiEvent.UndoDelete -> undoDelete(intent.userId)
             is UserFeedUiEvent.CommitDelete -> commitDelete(intent.userId)
             is UserFeedUiEvent.DismissError -> {
-                _state.update { it.copy(error = null, pendingDeleteId = null) }
+                error.value = null
+                pendingDeleteId.value = null
             }
         }
     }
 
     private fun refresh() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            isLoading.value = true
+            error.value = null
             getUsersUseCase.refresh().onFailure { e ->
-                _state.update { it.copy(error = e.message ?: "Unknown error", isLoading = false) }
+                error.value = e.message ?: "Unknown error"
+                isLoading.value = false
             }
         }
     }
 
     private fun confirmDelete(userId: Long) {
-        _state.update { it.copy(pendingDeleteId = null) }
-        val user = _state.value.users.find { it.id == userId } ?: return
+        pendingDeleteId.value = null
+        val user = users.value.find { it.id == userId } ?: return
         pendingDeletes[userId] = user
-        _state.update { current ->
-            current.copy(users = current.users.filter { it.id != userId })
-        }
+        users.value = users.value.filter { it.id != userId }
         viewModelScope.launch {
             _effects.send(UserFeedEffect.ShowUndoSnackbar(userId, user.name))
             delay(5_000)
@@ -79,21 +95,14 @@ class UserFeedViewModel(
 
     private fun undoDelete(userId: Long) {
         val user = pendingDeletes.remove(userId) ?: return
-        _state.update { current ->
-            val updated = (current.users + user).sortedByDescending { it.id }
-            current.copy(users = updated)
-        }
+        users.value = (users.value + user).sortedByDescending { it.id }
     }
 
     private fun commitDelete(userId: Long) {
         val user = pendingDeletes.remove(userId) ?: return
         viewModelScope.launch {
             deleteUserUseCase(userId).onFailure { e ->
-                // Restore user on failure
-                _state.update { current ->
-                    val updated = (current.users + user).sortedByDescending { it.id }
-                    current.copy(users = updated)
-                }
+                users.value = (users.value + user).sortedByDescending { it.id }
                 _effects.send(UserFeedEffect.ShowError(e.message ?: "Delete failed"))
                 getUsersUseCase.refresh()
             }

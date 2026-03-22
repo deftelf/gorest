@@ -4,19 +4,51 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
+import uk.co.deftelf.gorest.domain.model.Gender
 import uk.co.deftelf.gorest.domain.usecase.CreateUserUseCase
 
 class AddUserViewModel(
     private val createUserUseCase: CreateUserUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(AddUserUiState())
-    val state: StateFlow<AddUserUiState> = _state.asStateFlow()
+    private val name = MutableStateFlow("")
+    private val email = MutableStateFlow("")
+    private val gender = MutableStateFlow(Gender.male)
+    private val birthday = MutableStateFlow<LocalDate?>(null)
+    private val showDatePicker = MutableStateFlow(false)
+    private val nameError = MutableStateFlow<String?>(null)
+    private val emailError = MutableStateFlow<String?>(null)
+    private val birthdayError = MutableStateFlow<String?>(null)
+    private val isSubmitting = MutableStateFlow(false)
+    private val isSuccess = MutableStateFlow(false)
+    private val generalError = MutableStateFlow<String?>(null)
+
+    val state: StateFlow<AddUserUiState> = combine(
+        name as Flow<Any?>, nameError, email, emailError, gender,
+        birthday, birthdayError, showDatePicker, isSubmitting, isSuccess, generalError,
+    ) { v ->
+        AddUserUiState(
+            name = v[0] as String,
+            nameError = v[1] as String?,
+            email = v[2] as String,
+            emailError = v[3] as String?,
+            gender = v[4] as Gender,
+            birthday = v[5] as LocalDate?,
+            birthdayError = v[6] as String?,
+            showDatePicker = v[7] as Boolean,
+            isSubmitting = v[8] as Boolean,
+            isSuccess = v[9] as Boolean,
+            generalError = v[10] as String?,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AddUserUiState())
 
     private val _effects = Channel<AddUserEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
@@ -24,63 +56,78 @@ class AddUserViewModel(
     fun processIntent(intent: AddUserUiEvent) {
         when (intent) {
             is AddUserUiEvent.UpdateName -> {
-                val error = when {
+                name.value = intent.value
+                nameError.value = when {
                     intent.value.isBlank() -> "Name cannot be empty"
                     intent.value.trim().split("\\s+".toRegex()).size != 2 -> "Enter a first and last name"
                     else -> null
                 }
-                _state.update { it.copy(name = intent.value, nameError = error) }
             }
             is AddUserUiEvent.UpdateEmail -> {
-                val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
-                val error = if (!emailRegex.matches(intent.value)) "Invalid email address" else null
-                _state.update { it.copy(email = intent.value, emailError = error) }
+                email.value = intent.value
+                emailError.value = if (!emailRegex.matches(intent.value)) "Invalid email address" else null
             }
             is AddUserUiEvent.UpdateGender -> {
-                _state.update { it.copy(gender = intent.gender) }
+                gender.value = intent.gender
             }
             is AddUserUiEvent.UpdateBirthday -> {
-                _state.update { it.copy(birthday = intent.date, birthdayError = null, showDatePicker = false) }
+                birthday.value = intent.date
+                birthdayError.value = null
+                showDatePicker.value = false
             }
             is AddUserUiEvent.ShowDatePicker -> {
-                _state.update { it.copy(showDatePicker = true) }
+                showDatePicker.value = true
             }
             is AddUserUiEvent.HideDatePicker -> {
-                _state.update { it.copy(showDatePicker = false) }
+                showDatePicker.value = false
             }
             is AddUserUiEvent.Submit -> submit()
         }
     }
 
     private fun submit() {
-        val current = _state.value
-        val nameError = when {
-            current.name.isBlank() -> "Name cannot be empty"
-            current.name.trim().split("\\s+".toRegex()).size != 2 -> "Enter a first and last name"
+        nameError.value = when {
+            name.value.isBlank() -> "Name cannot be empty"
+            name.value.trim().split("\\s+".toRegex()).size != 2 -> "Enter a first and last name"
             else -> null
         }
-        val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
-        val emailError = if (!emailRegex.matches(current.email)) "Invalid email address" else null
-        val birthdayError = if (current.birthday == null) "Birthday is required" else null
-        if (nameError != null || emailError != null || birthdayError != null) {
-            _state.update { it.copy(nameError = nameError, emailError = emailError, birthdayError = birthdayError) }
-            return
-        }
+        emailError.value = if (!emailRegex.matches(email.value)) "Invalid email address" else null
+        birthdayError.value = if (birthday.value == null) "Birthday is required" else null
+        if (nameError.value != null || emailError.value != null || birthdayError.value != null) return
         viewModelScope.launch {
-            _state.update { it.copy(isSubmitting = true) }
-            createUserUseCase(current.name, current.email, current.gender.name, current.birthday!!)
+            isSubmitting.value = true
+            createUserUseCase(name.value, email.value, gender.value.name, birthday.value!!)
                 .onSuccess {
-                    _state.update { it.copy(isSubmitting = false, isSuccess = true) }
+                    isSuccess.value = true
                     _effects.send(AddUserEffect.NavigateBack)
-                    _state.value = AddUserUiState()
+                    reset()
                 }
                 .onFailure { e ->
-                    _state.update { it.copy(isSubmitting = false, generalError = e.message) }
+                    isSubmitting.value = false
+                    generalError.value = e.message
                 }
         }
     }
 
     fun clearGeneralError() {
-        _state.update { it.copy(generalError = null) }
+        generalError.value = null
+    }
+
+    private fun reset() {
+        name.value = ""
+        email.value = ""
+        gender.value = Gender.male
+        birthday.value = null
+        showDatePicker.value = false
+        nameError.value = null
+        emailError.value = null
+        birthdayError.value = null
+        isSubmitting.value = false
+        isSuccess.value = false
+        generalError.value = null
+    }
+
+    companion object {
+        private val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
     }
 }
