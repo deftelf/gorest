@@ -1,5 +1,10 @@
 package uk.co.deftelf.gorest.ui.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
@@ -58,6 +63,15 @@ fun AppNavigation() {
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
         sceneStrategy = sceneStrategy,
+        transitionSpec = {
+            (fadeIn() + scaleIn(initialScale = 0.9f)) togetherWith (fadeOut() + scaleOut(targetScale = 1.05f))
+        },
+        popTransitionSpec = {
+            (fadeIn() + scaleIn(initialScale = 1.05f)) togetherWith (fadeOut() + scaleOut(targetScale = 0.9f))
+        },
+        predictivePopTransitionSpec = { _ ->
+            (fadeIn() + scaleIn(initialScale = 1.05f)) togetherWith (fadeOut() + scaleOut(targetScale = 0.9f))
+        },
         entryProvider = entryProvider {
             entry<Destination.UserList> {
                 UserListScreen(

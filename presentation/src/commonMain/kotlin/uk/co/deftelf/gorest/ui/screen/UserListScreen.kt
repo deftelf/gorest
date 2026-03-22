@@ -1,10 +1,10 @@
 package uk.co.deftelf.gorest.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,6 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigationevent.compose.NavigationBackHandler
@@ -64,13 +66,16 @@ fun UserListScreen(
     var fabVisible by remember { mutableStateOf(true) }
     var prevIndex by remember { mutableStateOf(0) }
     var prevOffset by remember { mutableStateOf(0) }
+    val scrollThresholdPx = with(LocalDensity.current) { 50.dp.toPx() }.toInt()
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
             .collect { (index, offset) ->
-                fabVisible = index < prevIndex || (index == prevIndex && offset <= prevOffset)
-                prevIndex = index
-                prevOffset = offset
+                if (index != prevIndex || kotlin.math.abs(offset - prevOffset) > scrollThresholdPx) {
+                    fabVisible = index < prevIndex || (index == prevIndex && offset <= prevOffset)
+                    prevIndex = index
+                    prevOffset = offset
+                }
             }
     }
 
@@ -111,17 +116,23 @@ fun UserListScreen(
         }
     }
 
+    val fabTranslationY by animateFloatAsState(
+        targetValue = if (fabVisible) 0f else with(LocalDensity.current) { 100.dp.toPx() },
+        animationSpec = if (fabVisible)
+            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+        else
+            tween(durationMillis = 200, easing = FastOutLinearInEasing),
+        label = "fabTranslationY",
+    )
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            AnimatedVisibility(
-                visible = fabVisible,
-                enter = slideInVertically { it } + fadeIn(),
-                exit = slideOutVertically { it } + fadeOut(),
+            FloatingActionButton(
+                onClick = onNavigateToAdd,
+                modifier = Modifier.graphicsLayer { translationY = fabTranslationY },
             ) {
-                FloatingActionButton(onClick = onNavigateToAdd) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.add_user_fab_description))
-                }
+                Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.add_user_fab_description))
             }
         },
     ) { paddingValues ->
