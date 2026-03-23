@@ -1,6 +1,6 @@
 package uk.co.deftelf.gorest.di
 
-import org.koin.compose.viewmodel.dsl.viewModel
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import uk.co.deftelf.gorest.domain.usecase.CreateUserUseCase
 import uk.co.deftelf.gorest.domain.usecase.DeleteUserUseCase

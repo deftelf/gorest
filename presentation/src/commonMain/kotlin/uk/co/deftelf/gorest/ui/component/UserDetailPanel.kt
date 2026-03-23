@@ -30,7 +30,7 @@ import uk.co.deftelf.gorest.ui.util.ageInYears
 private fun Instant.formattedDate(): String {
     val date = toLocalDateTime(TimeZone.currentSystemDefault()).date
     val month = date.month.name.lowercase().replaceFirstChar { it.uppercase() }
-    return "${date.dayOfMonth} $month ${date.year}"
+    return "${date.day} $month ${date.year}"
 }
 
 @Composable
